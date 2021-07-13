@@ -1,6 +1,6 @@
 from flask_restful import Resource, reqparse
-from security import register_user, verify_user
-from flask_jwt_extended import create_access_token, jwt_required
+from security import register_user
+from flask_jwt import jwt_required
 
 all_items = []
 
@@ -52,20 +52,6 @@ class RegisterUser(Resource):
 
     def post(self):
         request_data = RegisterUser.parser.parse_args()
-        return {"message" : register_user(request_data['username'], request_data['password'])}
-
-class Authorization(Resource):
-    parser = reqparse.RequestParser()
-    parser.add_argument('username', type=str, required=True, help="Please provide the username")
-    parser.add_argument('password', type=str, required=True, help="Please provide the password.")
-
-    def post(self):
-        print("Inside Authorization")
-        request_data = Authorization.parser.parse_args()
-        print(request_data)
-        if verify_user(request_data['username'], request_data['password']):
-            token = create_access_token(identity=request_data['username'])
-            return {"token" : token}
-        return {"message": "User not authorized."}
+        return {"message": register_user(request_data['username'], request_data['password'])}
 
 
