@@ -11,8 +11,8 @@ class ItemDB:
 
     @classmethod
     def add_item(cls, item_name, item_price):
-        query = """
-            INSERT into items VALUES (?, ?)
+        query = f"""
+            INSERT into {cls.table_name} VALUES (?, ?)
         """
         params = (item_name, item_price)
         with cls.db.connect():
@@ -20,8 +20,8 @@ class ItemDB:
 
     @classmethod
     def update_item(cls, item_name, item_price):
-        query = """
-            UPDATE items SET price = ? WHERE name = ?
+        query = f"""
+            UPDATE {cls.table_name} SET price = ? WHERE name = ?
         """
         params = (item_price, item_name)
         with cls.db.connect():
@@ -29,8 +29,8 @@ class ItemDB:
 
     @classmethod
     def delete_item(cls, item_name):
-        query = """
-            DELETE from items WHERE name = ?
+        query = f"""
+            DELETE from {cls.table_name} WHERE name = ?
         """
         params = (item_name, )
         item = cls.find_by_name(item_name)
@@ -41,8 +41,8 @@ class ItemDB:
 
     @classmethod
     def find_by_name(cls, item_name):
-        query = """
-            SELECT * FROM items WHERE name = ?
+        query = f"""
+            SELECT * FROM {cls.table_name} WHERE name = ?
         """
         params = (item_name, )
         with cls.db.connect():
@@ -52,8 +52,8 @@ class ItemDB:
 
     @classmethod
     def find_all(cls):
-        query = """
-            SELECT * FROM items
+        query = f"""
+            SELECT * FROM {cls.table_name}
         """
         with cls.db.connect():
             result = cls.db.retrieve(query, fetchall=True)
