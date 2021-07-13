@@ -27,8 +27,8 @@ class UserDB:
         params = (username, )
         with cls.db.connect():
             result = cls.db.retrieve(sql=query, params=params, fetchall=False)
-            user = User(*result)
-            return user
+            if result:
+                return User(*result)
 
     @classmethod
     def find_by_id(cls, userid):
@@ -38,8 +38,8 @@ class UserDB:
         params = (userid, )
         with cls.db.connect():
             result = cls.db.retrieve(sql=query, params=params, fetchall=False)
-            user = User(*result)
-            return user
+            if result:
+                return User(*result)
 
 if __name__ == "__main__":
     # user = User('jkhuttan', 'asdf')

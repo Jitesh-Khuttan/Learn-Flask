@@ -10,6 +10,6 @@ def create_table(db_name, table_name):
         db.execute(sql)
 
 if __name__ == "__main__":
-    db_name = 'users.db'
-    table_name = 'users(id INTEGER PRIMARY KEY, username text, password text)'
+    db_name = 'items.db'
+    table_name = 'items(name text, price real)'
     create_table(db_name, table_name)
