@@ -1,6 +1,6 @@
 from flask_restful import Resource, reqparse
-from security import register_user
 from flask_jwt import jwt_required
+from user import User, UserDB
 
 all_items = []
 
@@ -45,6 +45,7 @@ class ItemList(Resource):
     def get(self):
         return {"items": all_items}
 
+
 class RegisterUser(Resource):
     parser = reqparse.RequestParser()
     parser.add_argument('username', type=str, required=True, help="Please provide the username")
@@ -52,6 +53,14 @@ class RegisterUser(Resource):
 
     def post(self):
         request_data = RegisterUser.parser.parse_args()
-        return {"message": register_user(request_data['username'], request_data['password'])}
+        username, password = request_data['username'], request_data['password']
+        if UserDB.find_by_username(username):
+            return {"message": f"{username} already exists."}
+        try:
+            UserDB.register_user(username, password)
+            return {"message" : f"{username} successfully registered."}, 201
+        except Exception:
+            return {"message": f"Failed to register."}, 400
+
 
 
