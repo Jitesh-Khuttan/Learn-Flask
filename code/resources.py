@@ -1,6 +1,7 @@
 from flask_restful import Resource, reqparse
-from security import register_user
 from flask_jwt import jwt_required
+from user import UserDB
+from items import ItemDB
 
 all_items = []
 
@@ -10,40 +11,51 @@ class Item(Resource):
     parser.add_argument('price', required=True, type=float)
 
     def get(self, name):
-        item = next(filter(lambda x: x["name"].upper() == name.upper(), all_items), None)
-        return {"item": item}, 200 if item else 400
+        item = ItemDB.find_by_name(item_name=name)
+        if item:
+            ret_val = {"name": item.name, "price": item.price}
+            return {"item": ret_val}, 200
+        return {"message": f"Item '{name}' not found."}, 400
 
     def post(self, name):
         request_data = Item.parser.parse_args()
-        if next(filter(lambda x: x["name"].upper() == name.upper(), all_items), None) is not None:
+        if ItemDB.find_by_name(item_name=name):
             return {"item": None, "message": f"Item '{name}' already exists."}, 400
-        new_item = {'name': name, 'price': request_data['price']}
-        all_items.append(new_item)
-        return {"item": new_item}, 201
+
+        ItemDB.add_item(item_name=name, item_price=request_data['price'])
+        ret_val = {"name": name, "price": request_data["price"]}
+        return {"item": ret_val}, 201
 
     def put(self, name):
         request_data = Item.parser.parse_args()
-        item = next(filter(lambda x: x["name"].upper() == name.upper(), all_items), None)
+        item = ItemDB.find_by_name(name)
         if item is None:
-            new_item = {'name': name, 'price': request_data['price']}
-            all_items.append(new_item)
-            return {"item": new_item}, 201
+            ItemDB.add_item(name, request_data['price'])
+        else:
+            ItemDB.update_item(name, request_data['price'])
 
-        item.update(request_data)
-        return {"item": item}, 201
+        ret_val = {"name": name, "price": request_data["price"]}
+        return {"item": ret_val}, 201
 
     @jwt_required()
     def delete(self, name):
-        del_index = [idx for idx, item in enumerate(all_items) if item['name'].upper() == name.upper()]
-        if del_index:
-            deleted_item = all_items.pop(del_index[0])
-            return {"item": deleted_item}, 200
-        return {"item": None}, 404
+        item = ItemDB.delete_item(name)
+        if item:
+            ret_val = {"name" : item.name, "price" : item.price}
+            return {"item" : ret_val}, 200
 
+        return {"message" : f"Item '{name}' not found!"}, 404
 
 class ItemList(Resource):
     def get(self):
-        return {"items": all_items}
+        all_items = ItemDB.find_all()
+        if all_items:
+            all_items = [
+                {"name": item.name, "price": item.price} for item in all_items
+            ]
+            return {"items": all_items}, 200
+        return {"items" : []}, 200
+
 
 class RegisterUser(Resource):
     parser = reqparse.RequestParser()
@@ -52,6 +64,14 @@ class RegisterUser(Resource):
 
     def post(self):
         request_data = RegisterUser.parser.parse_args()
-        return {"message": register_user(request_data['username'], request_data['password'])}
+        username, password = request_data['username'], request_data['password']
+        if UserDB.find_by_username(username):
+            return {"message": f"{username} already exists."}
+        try:
+            UserDB.register_user(username, password)
+            return {"message" : f"{username} successfully registered."}, 201
+        except Exception:
+            return {"message": f"Failed to register."}, 400
+
 
 
