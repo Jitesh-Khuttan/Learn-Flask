@@ -2,12 +2,12 @@ import sqlite3
 import os
 from contextlib import contextmanager
 from code.db.db_utils import validate_params_for_executemany
-from code.db.config import db_dir_name
+from code.db.config import db_dir_path
 
 class DBAccess:
 
     def __init__(self, db_name):
-        self.db_path = os.path.join(os.path.dirname(__file__), db_dir_name, db_name)
+        self.db_path = os.path.join(db_dir_path, db_name)
 
     @contextmanager
     def connect(self):

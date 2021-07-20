@@ -1,4 +1,4 @@
-from user import UserDB
+from code.models.user import UserDB
 from werkzeug.security import safe_str_cmp
 
 def authenticate(username, password):
