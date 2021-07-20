@@ -1,50 +1,32 @@
-from code.db.db_access import DBAccess
+from code.db.alchemy_db import db
 
-class User:
-    def __init__(self, _id, username, password):
-        self.id = _id
-        self.username = username
-        self.password = password
+class UserModel(db.Model):
 
-class UserDB:
-    db_name, table_name = 'users.db', 'users'
-    db = DBAccess(db_name)
+    __tablename__ = "users"
+    id = db.Column(db.Integer, primary_key=True)
+    username = db.Column(db.String(60))
+    password = db.Column(db.String(100))
 
-    @classmethod
-    def register_user(cls, username, password):
-        query = f"""
-            INSERT INTO {cls.table_name} VALUES (NULL, ?, ?)
-        """
-        params = (username, password)
-        with cls.db.connect():
-            cls.db.execute(sql=query, params=params, commit=True)
+    def to_json(self):
+        return {'id': self.id, 'username': self.username}
+
+    def register(self):
+        db.session.add(self)
+        db.session.commit()
 
     @classmethod
     def find_by_username(cls, username):
-        query = f"""
-            SELECT * FROM {cls.table_name} WHERE username = (?)
-        """
-        params = (username, )
-        with cls.db.connect():
-            result = cls.db.retrieve(sql=query, params=params, fetchall=False)
-            if result:
-                return User(*result)
+        return cls.query.filter_by(username=username).first()
 
     @classmethod
     def find_by_id(cls, userid):
-        query = f"""
-            SELECT * FROM {cls.table_name} WHERE id = (?)
-        """
-        params = (userid, )
-        with cls.db.connect():
-            result = cls.db.retrieve(sql=query, params=params, fetchall=False)
-            if result:
-                return User(*result)
+        return cls.query.filter_by(id=userid).first()
+
+    @classmethod
+    def find_all(cls):
+        return cls.query.all()
+
 
 if __name__ == "__main__":
-    # user = User('jkhuttan', 'asdf')
-    # UserDB.register_user(user)
-    result = UserDB.find_by_username('hkhuttan')
-    print(result)
-    result = UserDB.find_by_id(1)
-    print(result)
+    user = UserModel(username="jkhuttan", password="asdf")
+    print(user.to_json())
