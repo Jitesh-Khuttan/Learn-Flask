@@ -1,3 +1,4 @@
+import os
 from flask import Flask
 from flask_restful import Api
 from code.resources.item import Item, ItemList
@@ -11,7 +12,7 @@ from code.db.config import db_dir_path
 app = Flask(__name__)
 app.config['JWT_SECRET_KEY'] = 'jwt-important-key'
 
-app.config['SQLALCHEMY_DATABASE_URI'] = f"sqlite:///{db_dir_path}/data.db"
+app.config['SQLALCHEMY_DATABASE_URI'] = os.environ.get('DATABASE_URL', f"sqlite:///{db_dir_path}/data.db")
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
 db.init_app(app)
