@@ -6,6 +6,7 @@ from code.models.items import ItemModel
 class Item(Resource):
     parser = reqparse.RequestParser()
     parser.add_argument('price', required=True, type=float)
+    parser.add_argument('store_id', required=True, type=str)
 
     def get(self, name):
         item = ItemModel.find_by_name(item_name=name)
@@ -18,7 +19,7 @@ class Item(Resource):
         if ItemModel.find_by_name(item_name=name):
             return {"message": f"Item '{name}' already exists."}, 400
 
-        item = ItemModel(name=name, price=request_data['price'])
+        item = ItemModel(name=name, **request_data)
         item.save_to_db()
         return {"item": item.to_json()}, 201
 
@@ -27,8 +28,9 @@ class Item(Resource):
         item = ItemModel.find_by_name(item_name=name)
         if item:
             item.price = request_data['price']
+            item.store_id = request_data['store_id']
         else:
-            item = ItemModel(name=name, price=request_data['price'])
+            item = ItemModel(name=name, **request_data)
 
         item.save_to_db()
         return {"item": item.to_json()}, 201
@@ -45,8 +47,4 @@ class Item(Resource):
 
 class ItemList(Resource):
     def get(self):
-        result = []
-        all_items = ItemModel.find_all()
-        if all_items:
-            result = [item.to_json()for item in all_items]
-        return {"items": result}, 200
+        return {"items": [item.to_json() for item in ItemModel.find_all()]}

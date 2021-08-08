@@ -1,5 +1,7 @@
 from flask_restful import Resource, reqparse
 from code.models.user import UserModel
+import logging
+logging.basicConfig(level=2)
 
 class RegisterUser(Resource):
     parser = reqparse.RequestParser()
@@ -8,20 +10,17 @@ class RegisterUser(Resource):
 
     def post(self):
         request_data = RegisterUser.parser.parse_args()
-        username, password = request_data['username'], request_data['password']
-
-        print(UserModel.find_by_username(username))
+        username = request_data['username']
 
         if UserModel.find_by_username(username):
             return {"message": f"{username} already exists."}
 
         try:
-            user = UserModel(username=username, password=password)
-            user.register()
-            return {"message" : f"{username} successfully registered."}, 201
-        except Exception:
+            UserModel(**request_data).register()
+            return {"message": f"{username} successfully registered."}, 201
+        except Exception as exp:
+            logging.error(f"{exp}")
             return {"message": f"Failed to register."}, 400
 
     def get(self):
-        all_users = UserModel.find_all()
-        return [user.to_json() for user in all_users]
+        return {"users": [user.to_json() for user in UserModel.find_all()]}
