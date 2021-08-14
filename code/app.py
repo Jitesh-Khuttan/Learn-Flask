@@ -3,9 +3,8 @@ from flask import Flask
 from flask_restful import Api
 from code.resources.item import Item, ItemList
 from code.resources.store import Store, StoreList
-from code.resources.register import RegisterUser
-from flask_jwt import JWT
-from code.security.security import authenticate, identity
+from code.resources.user import UserRegister, User, UserLogin
+from flask_jwt_extended import JWTManager
 from code.db.alchemy_db import db
 from code.db.config import db_dir_path
 
@@ -16,7 +15,7 @@ app.config['SQLALCHEMY_DATABASE_URI'] = os.environ.get('DATABASE_URL', f"sqlite:
 if os.environ.get('DATABASE_URL') and os.environ.get('DATABASE_URL').startswith("postgres://"):
     app.config['SQLALCHEMY_DATABASE_URI'] = app.config['SQLALCHEMY_DATABASE_URI'].replace("postgres://", "postgresql://", 1)
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
-
+app.secret_key = 'secret-key'
 db.init_app(app)
 
 @app.before_first_request
@@ -24,14 +23,16 @@ def create_tables():
     "Creates tables if they don't exist."
     db.create_all()
 
-jwt = JWT(app, authenticate, identity)
+jwt = JWTManager(app)
 
 api = Api(app)
 api.add_resource(Item, '/item/<string:name>')
 api.add_resource(ItemList, '/items')
-api.add_resource(RegisterUser, '/register')
+api.add_resource(UserRegister, '/register')
 api.add_resource(Store, '/store/<string:name>')
 api.add_resource(StoreList, '/stores')
+api.add_resource(User, '/user/<string:name>')
+api.add_resource(UserLogin, '/login')
 
 if __name__ == "__main__":
     app.run(port=9000)
